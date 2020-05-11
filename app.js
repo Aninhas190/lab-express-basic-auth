@@ -4,9 +4,17 @@ const createError = require('http-errors');
 const logger = require('morgan');
 const sassMiddleware = require('node-sass-middleware');
 const serveFavicon = require('serve-favicon');
+const connectMongo = require('connect-mongo');
+const expressSession = require('express-session');
+const deserializerUser = require('./middleware/deserialize-user');
+const mongoose = require('mongoose');
+const routeGuard = require('./middleware/routeGuard');
+
+const mongoStore = connectMongo(expressSession);
 
 const indexRouter = require('./routes/index');
 const authenticationRouter = require('./routes/authentication')
+
 
 const app = express();
 
@@ -29,8 +37,33 @@ app.use(
   })
 );
 
+app.use(
+  expressSession({
+    secret: 'shhh',
+    resave: true,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 5 * 24 * 60 * 60 * 1000
+    },
+    store: new mongoStore({
+      mongooseConnection: mongoose.connection,
+      ttl: 60 * 60
+    })
+  })
+);
+
+app.use(deserializerUser);
+
 app.use('/', indexRouter);
 app.use('/authentication', authenticationRouter)
+
+app.get('/main', routeGuard, (req, res) => {
+  res.render('main');
+});
+
+app.get('/private', routeGuard, (req, res) => {
+  res.render('private');
+})
 
 // Catch missing routes and forward to error handler
 app.use((req, res, next) => {

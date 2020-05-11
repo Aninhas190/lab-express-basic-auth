@@ -21,11 +21,12 @@ authenticationRouter.post('/sign-up', (req, res) => {
       })
     })
     .then(user => {
-      console.log(user);
+      req.session.userId = user._id;
       res.redirect('/');
     })
     .catch(error => {
-      res.redirect('/authentication/sign-up')
+      //res.redirect('/authentication/sign-up');
+      next(error);
     });
 });
 
@@ -37,16 +38,24 @@ authenticationRouter.post('/sign-in', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
+  let user;
+
   User.findOne({username})
-    .then(user => {
-      console.log(user);
+    .then(document => {
+      user = document;
       return bcrypt.compare(password, user.passwordEncrypted);
     })
     .then(comparison => {
       console.log(comparison);
-      res.redirect('/');
+      if (comparison) {
+        // serializing the user
+        req.session.userId = user._id;
+        res.redirect('/');
+      } else {
+        return Promise.reject(new Error('password does not match'));
+      }
     })
-    .catch(error);
+    .catch(error => next(error));
 });
 
 
