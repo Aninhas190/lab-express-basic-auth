@@ -6,15 +6,16 @@ const sassMiddleware = require('node-sass-middleware');
 const serveFavicon = require('serve-favicon');
 const connectMongo = require('connect-mongo');
 const expressSession = require('express-session');
-const deserializerUser = require('./middleware/deserialize-user');
 const mongoose = require('mongoose');
-const routeGuard = require('./middleware/routeGuard');
+const deserializerUser = require('./middleware/deserialize-user');
+const bindUserDocumentToResponseLocals = require('./middleware/bind-user-document-to-response-locals');
+const routeGuard = require('./middleware/route-guard');
 
 const mongoStore = connectMongo(expressSession);
 
 const indexRouter = require('./routes/index');
-const authenticationRouter = require('./routes/authentication')
-
+const authenticationRouter = require('./routes/authentication');
+const userRouter = require('./routes/userRouter');
 
 const app = express();
 
@@ -53,9 +54,15 @@ app.use(
 );
 
 app.use(deserializerUser);
+app.use(bindUserDocumentToResponseLocals);
+
+app.get('/', (req, res) => {
+  res.render('index');
+});
 
 app.use('/', indexRouter);
-app.use('/authentication', authenticationRouter)
+app.use('/authentication', authenticationRouter);
+app.use('/profile', userRouter);
 
 app.get('/main', routeGuard, (req, res) => {
   res.render('main');
@@ -63,7 +70,7 @@ app.get('/main', routeGuard, (req, res) => {
 
 app.get('/private', routeGuard, (req, res) => {
   res.render('private');
-})
+});
 
 // Catch missing routes and forward to error handler
 app.use((req, res, next) => {

@@ -5,9 +5,17 @@
     <link rel='stylesheet' href='/styles/style.css' />
   </head>
   <body>
-    <nav>
-      <a href="/authentication/sign-up">Sign Up</a>
-      <a href="/authentication/sign-in">Sign In</a>
+    <nav> 
+      <a href="/">Home</a>
+      {{#if user}}
+        <form action="/authentication/sign-out" method="POST">
+          <button>Sign Out</button>
+        </form>
+        <a href="/profile"> Your Profile </a>
+      {{else}}  
+        <a href="/authentication/sign-up">Sign Up</a>
+        <a href="/authentication/sign-in">Sign In</a>
+      {{/if}}
     </nav>
     {{{body}}}
   </body>

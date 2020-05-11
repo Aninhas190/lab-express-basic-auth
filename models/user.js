@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema({
   passwordEncrypted: {
     type: String,
     required: true
-  }
+  },
+  name: String
 })
 
 const User = mongoose.model('User', userSchema);
