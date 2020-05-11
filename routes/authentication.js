@@ -29,4 +29,25 @@ authenticationRouter.post('/sign-up', (req, res) => {
     });
 });
 
+authenticationRouter.get('/sign-in', (req, res) => {
+  res.render('sign-in');
+});
+
+authenticationRouter.post('/sign-in', (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  User.findOne({username})
+    .then(user => {
+      console.log(user);
+      return bcrypt.compare(password, user.passwordEncrypted);
+    })
+    .then(comparison => {
+      console.log(comparison);
+      res.redirect('/');
+    })
+    .catch(error);
+});
+
+
 module.exports = authenticationRouter;
